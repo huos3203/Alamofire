@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 //
 
+#if canImport(SytemConfiguration)
+
 @testable import Alamofire
 import Foundation
 import SystemConfiguration
@@ -181,7 +183,7 @@ final class NetworkReachabilityManagerTestCase: BaseTestCase {
             networkReachabilityStatus = status
             expectation.fulfill()
         }
-        waitForExpectations(timeout: timeout, handler: nil)
+        waitForExpectations(timeout: timeout)
 
         // Then
         XCTAssertEqual(networkReachabilityStatus, .reachable(.ethernetOrWiFi))
@@ -199,7 +201,7 @@ final class NetworkReachabilityManagerTestCase: BaseTestCase {
             networkReachabilityStatus = status
             expectation.fulfill()
         }
-        waitForExpectations(timeout: timeout, handler: nil)
+        waitForExpectations(timeout: timeout)
 
         // Then
         XCTAssertEqual(networkReachabilityStatus, .reachable(.ethernetOrWiFi))
@@ -297,3 +299,5 @@ final class NetworkReachabilityManagerTestCase: BaseTestCase {
     }
     #endif
 }
+
+#endif

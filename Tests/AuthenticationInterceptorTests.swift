@@ -150,14 +150,13 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let authenticator = TestAuthenticator()
         let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
 
-        let urlRequest = URLRequest.makeHTTPBinRequest()
         let session = Session()
 
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: interceptor).validate().response {
+        let request = session.request(.default, interceptor: interceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -182,8 +181,6 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let authenticator = TestAuthenticator()
         let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
 
-        let urlRequest1 = URLRequest.makeHTTPBinRequest(path: "/status/200")
-        let urlRequest2 = URLRequest.makeHTTPBinRequest(path: "/status/202")
         let session = Session()
 
         let expect = expectation(description: "both requests should complete")
@@ -193,12 +190,12 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         var response2: AFDataResponse<Data?>?
 
         // When
-        let request1 = session.request(urlRequest1, interceptor: interceptor).validate().response {
+        let request1 = session.request(.status(200), interceptor: interceptor).validate().response {
             response1 = $0
             expect.fulfill()
         }
 
-        let request2 = session.request(urlRequest2, interceptor: interceptor).validate().response {
+        let request2 = session.request(.status(202), interceptor: interceptor).validate().response {
             response2 = $0
             expect.fulfill()
         }
@@ -225,14 +222,13 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let authenticator = TestAuthenticator()
         let interceptor = AuthenticationInterceptor(authenticator: authenticator)
 
-        let urlRequest = URLRequest.makeHTTPBinRequest()
         let session = Session()
 
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: interceptor).validate().response {
+        let request = session.request(.default, interceptor: interceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -261,13 +257,12 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
 
         let session = Session()
-        let urlRequest = URLRequest.makeHTTPBinRequest()
 
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: interceptor).validate().response {
+        let request = session.request(.default, interceptor: interceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -296,6 +291,7 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
 
     // MARK: - Tests - Retry
 
+    #if !(os(Linux) || os(Windows)) // URLRequest to /invalid/path is a fatal error.
     func testThatInterceptorDoesNotRetryWithoutResponse() {
         // Given
         let credential = TestCredential()
@@ -329,6 +325,7 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
 
         XCTAssertEqual(request.retryCount, 0)
     }
+    #endif
 
     func testThatInterceptorDoesNotRetryWhenRequestDoesNotFailDueToAuthError() {
         // Given
@@ -336,14 +333,13 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let authenticator = TestAuthenticator()
         let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
 
-        let urlRequest = URLRequest.makeHTTPBinRequest(path: "status/500")
         let session = Session()
 
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: interceptor).validate().response {
+        let request = session.request(.status(500), interceptor: interceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -376,13 +372,11 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
 
         let session = Session(eventMonitors: [eventMonitor])
 
-        let urlRequest = URLRequest.makeHTTPBinRequest(path: "status/401")
-
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: interceptor).validate().response {
+        let request = session.request(.status(401), interceptor: interceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -430,13 +424,11 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let pathAdapter = PathAdapter(paths: ["/status/401", "/status/200"])
         let compositeInterceptor = Interceptor(adapters: [pathAdapter, interceptor], retriers: [interceptor])
 
-        let urlRequest = URLRequest.makeHTTPBinRequest()
-
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: compositeInterceptor).validate().response {
+        let request = session.request(.default, interceptor: compositeInterceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -477,13 +469,11 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let pathAdapter = PathAdapter(paths: ["/status/200"])
         let compositeInterceptor = Interceptor(adapters: [pathAdapter, interceptor], retriers: [interceptor])
 
-        let urlRequest = URLRequest.makeHTTPBinRequest()
-
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: compositeInterceptor).validate().response {
+        let request = session.request(.default, interceptor: compositeInterceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -513,13 +503,12 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let compositeInterceptor = Interceptor(adapters: [pathAdapter, interceptor], retriers: [interceptor])
 
         let session = Session()
-        let urlRequest = URLRequest.makeHTTPBinRequest()
 
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: compositeInterceptor).validate().response {
+        let request = session.request(.default, interceptor: compositeInterceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -545,13 +534,12 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
 
         let session = Session()
-        let urlRequest = URLRequest.makeHTTPBinRequest(path: "/status/401")
 
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: interceptor).validate().response {
+        let request = session.request(.status(401), interceptor: interceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -585,7 +573,6 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let interceptor = AuthenticationInterceptor(authenticator: authenticator, credential: credential)
 
         let requestCount = 6
-        let urlRequest = URLRequest.makeHTTPBinRequest()
         let session = Session()
 
         let expect = expectation(description: "both requests should complete")
@@ -599,7 +586,7 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
             let compositeInterceptor = Interceptor(adapters: [pathAdapter, interceptor], retriers: [interceptor])
 
             // When
-            let request = session.request(urlRequest, interceptor: compositeInterceptor).validate().response {
+            let request = session.request(.default, interceptor: compositeInterceptor).validate().response {
                 responses[index] = $0
                 expect.fulfill()
             }
@@ -643,13 +630,12 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
         let compositeInterceptor = Interceptor(adapters: [pathAdapter, interceptor], retriers: [interceptor])
 
         let session = Session()
-        let urlRequest = URLRequest.makeHTTPBinRequest()
 
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: compositeInterceptor).validate().response {
+        let request = session.request(.default, interceptor: compositeInterceptor).validate().response {
             response = $0
             expect.fulfill()
         }
@@ -677,13 +663,12 @@ final class AuthenticationInterceptorTestCase: BaseTestCase {
                                                     refreshWindow: .init(interval: 30, maximumAttempts: 2))
 
         let session = Session()
-        let urlRequest = URLRequest.makeHTTPBinRequest(path: "/status/401")
 
         let expect = expectation(description: "request should complete")
         var response: AFDataResponse<Data?>?
 
         // When
-        let request = session.request(urlRequest, interceptor: interceptor).validate().response {
+        let request = session.request(.status(401), interceptor: interceptor).validate().response {
             response = $0
             expect.fulfill()
         }
